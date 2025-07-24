@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后量子密码技术调研报告</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.5.0/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6f0fa 100%);
+            color: #2d3748;
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px 0 rgba(31, 38, 135, 0.15);
+        }
+        .chart-container {
+            height: 320px;
+            width: 100%;
+            position: relative;
+        }
+        .highlight-text {
+            position: relative;
+            display: inline-block;
+        }
+        .highlight-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: rgba(56, 182, 255, 0.2);
+            z-index: -1;
+        }
+        .data-pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(56, 182, 255, 0.1);
+            color: #0066cc;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #0066cc;
+        }
+        .timeline-line {
+            width: 2px;
+            background-color: #e5e7eb;
+        }
+        .mobile-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            transform-origin: top;
+            transform: scaleY(0);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 100;
+        }
+        .mobile-menu.active {
+            transform: scaleY(1);
+            opacity: 1;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .mobile-menu a:hover, .mobile-menu a:focus {
+            background-color: rgba(56, 182, 255, 0.1);
+            color: #0066cc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        pre {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f8fafc;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #0066cc;
+        }
+        .dark-mode {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+        .dark-mode .glassmorphism {
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(74, 85, 104, 0.3);
+        }
+        .dark-mode th {
+            background-color: #2d3748;
+        }
+        .dark-mode tr:hover {
+            background-color: #2d3748;
+        }
+        .dark-mode pre, .dark-mode code {
+            background-color: #2d3748;
+            color: #81e6d9;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- 导航条 -->
+    <nav class="glassmorphism sticky top-0 z-50 p-4 mb-8" id="mainNav">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 text-transparent bg-clip-text">
+                <i class="fas fa-lock mr-2"></i>后量子密码技术调研
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#intro" class="text-gray-600 hover:text-blue-600 transition-colors">引言</a>
+                <a href="#tech" class="text-gray-600 hover:text-blue-600 transition-colors">技术基础</a>
+                <a href="#standard" class="text-gray-600 hover:text-blue-600 transition-colors">标准化进展</a>
+                <a href="#cases" class="text-gray-600 hover:text-blue-600 transition-colors">应用案例</a>
+                <a href="#future" class="text-gray-600 hover:text-blue-600 transition-colors">未来趋势</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="darkModeToggle" class="text-gray-600 hover:text-blue-600 transition-colors" aria-label="切换深色模式">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="md:hidden text-gray-600 focus:outline-none" id="mobileMenuButton" aria-label="导航菜单">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- 移动端导航菜单 -->
+            <div class="mobile-menu md:hidden" id="mobileMenu">
+                <a href="#intro" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-info-circle mr-3 text-blue-500"></i>引言
+                </a>
+                <a href="#tech" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-microchip mr-3 text-blue-500"></i>技术基础
+                </a>
+                <a href="#standard" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-certificate mr-3 text-blue-500"></i>标准化进展
+                </a>
+                <a href="#cases" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-building mr-3 text-blue-500"></i>应用案例
+                </a>
+                <a href="#future" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-chart-line mr-3 text-blue-500"></i>未来趋势
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 头部横幅 -->
+    <header class="container mx-auto py-16 px-4 md:px-8 relative">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                后量子密码技术调研报告
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 mb-8">标准化进展、应用案例与未来趋势</p>
+            <div class="flex justify-center gap-4">
+                <div class="glassmorphism p-4 text-center w-32 card-hover">
+                    <div class="text-sm text-gray-500">量子威胁</div>
+                    <div class="text-2xl font-bold text-blue-600">2030+</div>
+                </div>
+                <div class="glassmorphism p-4 text-center w-32 card-hover">
+                    <div class="text-sm text-gray-500">算法类型</div>
+                    <div class="text-2xl font-bold text-blue-600">5+</div>
+                </div>
+                <div class="glassmorphism p-4 text-center w-32 card-hover">
+                    <div class="text-sm text-gray-500">市场规模</div>
+                    <div class="text-2xl font-bold text-blue-600">500亿</div>
+                </div>
+                <div class="glassmorphism p-4 text-center w-32 card-hover">
+                    <div class="text-sm text-gray-500">标准进度</div>
+                    <div class="text-2xl font-bold text-blue-600">NIST</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 引言部分 -->
+    <section id="intro" class="container mx-auto py-12 px-4 md:px-8">
+        <div class="glassmorphism p-8 mb-16">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white mr-3">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                引言：量子计算威胁与后量子密码的战略意义
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">量子计算对传统密码体系的颠覆性威胁</h3>
+                    <p class="mb-4">量子计算技术的飞速发展对当前主流密码体系构成了根本性挑战，其核心威胁源于量子算法对经典密码学数学基础的突破。Shor算法作为量子计算的标志性成果，能够在多项式时间内高效求解大数分解问题与离散对数问题，而这些问题正是传统公钥密码体系的安全性基石。</p>
+                    
+                    <div class="my-6">
+                        <h4 class="font-semibold text-lg mb-3 text-gray-700">主要量子算法威胁：</h4>
+                        <div class="flex flex-wrap">
+                            <div class="data-pill"><i class="fas fa-bolt mr-1"></i> Shor算法</div>
+                            <div class="data-pill"><i class="fas fa-search mr-1"></i> Grover算法</div>
+                        </div>
+                    </div>
+
+                    <p>当前广泛应用的RSA、ECC（椭圆曲线密码）、SM2、DSA及Diffie-Hellman等算法，其安全性均依赖于经典计算机在求解上述数论问题时的计算复杂度，一旦大规模量子计算机实现对Shor算法的有效运行，此类公钥密码系统将面临全线破解风险。</p>
+                </div>
+                <div>
+                    <div id="quantum-threat-chart" class="chart-container"></div>
+                    <div class="text-sm text-gray-500 text-center mt-2">量子算法对传统密码的威胁对比</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glassmorphism p-8 mb-16">
+            <h3 class="text-xl font-semibold mb-4">后量子密码的定义与研究价值</h3>
+            <p class="mb-4">后量子密码（Post-Quantum Cryptography, PQC），又称抗量子密码（Quantum Resistant Cryptography, QRC），是一类专门设计用于抵御量子计算攻击的密码技术。其与传统公钥密码体系的核心差异在于安全基础的重构：传统密码算法的安全性主要依赖于大数因数分解、离散对数等经典计算环境下的数学难题，而这些问题在量子计算机（如基于Shor算法的算力）面前将不再具备长期安全性。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                <div>
+                    <h4 class="font-semibold mb-2">后量子密码的核心特性：</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>基于抗量子数学难题（如格密码学中的最短向量问题）</li>
+                        <li>兼容现有密码体系的应用模式</li>
+                        <li>支持数字签名、密钥封装等安全计算任务</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">研究价值体现：</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>为量子时代信息安全体系奠定基石</li>
+                        <li>保障长期数据安全（如金融交易记录、政务机密）</li>
+                        <li>实现现有信息系统的平滑迭代升级</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术基础部分 -->
+    <section id="tech" class="container mx-auto py-12 px-4 md:px-8">
+        <div class="glassmorphism p-8 mb-16">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white mr-3">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                后量子密码技术基础：核心算法与数学原理
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">主流技术路线与代表算法</h3>
+                    <p class="mb-4">后量子密码算法主要基于五种数学难题构建：格密码学、编码密码学、多变量密码学、哈希密码学和同源密码学。每种技术路线各有优劣，适用于不同安全场景。</p>
+                    
+                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                        <p class="text-blue-800 font-medium mb-2"><i class="fas fa-lightbulb text-blue-400 mr-2"></i>技术路线选择要点</p>
+                        <p class="text-gray-700">后量子密码算法的实用化需在计算效率、资源消耗（存储/带宽）与安全性之间进行系统性权衡。以下从三个核心维度对主流算法进行量化分析，为场景化选型提供依据。</p>
+                    </div>
+                </div>
+                <div>
+                    <div id="algorithm-types-chart" class="chart-container"></div>
+                    <div class="text-sm text-gray-500 text-center mt-2">后量子密码算法类型分布</div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-6">关键算法性能与特性对比</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h4 class="font-semibold">计算效率对比</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">基于格的算法在计算效率上表现突出，其运算速度已接近传统国密标准算法。以商用芯片AHC001的实测数据为例，格密码Kyber512的密钥生成速度达3600次/秒，加密2600次/秒，解密1300次/秒。</p>
+                </div>
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <h4 class="font-semibold">资源消耗对比</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">资源消耗主要体现在密钥/签名尺寸及带宽占用。基于编码理论的McEliece算法存在致命的资源瓶颈，其公钥体积可达MB级，远超其他类型算法，对存储和带宽资源构成极大挑战。</p>
+                </div>
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="font-semibold">安全性对比</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">基于格的算法具有理论可规约的安全基础，被业界广泛认为是最具前景的技术分支。McEliece算法40余年未被攻破，具备长期安全性保障。而基于同源性的SIKE算法已被完全破解，安全性存疑。</p>
+                </div>
+            </div>
+
+            <h4 class="font-semibold mb-4">场景化选型建议</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>应用场景</th>
+                            <th>优先考虑特性</th>
+                            <th>推荐算法</th>
+                            <th>备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>金融高频交易</td>
+                            <td>计算效率与资源消耗均衡</td>
+                            <td>Kyber、Dilithium</td>
+                            <td>毫秒级处理延迟</td>
+                        </tr>
+                        <tr>
+                            <td>军事通信</td>
+                            <td>安全性绝对优先</td>
+                            <td>McEliece</td>
+                            <td>可接受资源开销</td>
+                        </tr>
+                        <tr>
+                            <td>档案存储</td>
+                            <td>长期数据完整性</td>
+                            <td>SPHINCS+</td>
+                            <td>依赖哈希函数特性</td>
+                        </tr>
+                        <tr>
+                            <td>物联网设备</td>
+                            <td>低功耗与小型化</td>
+                            <td>轻量级格密码</td>
+                            <td>资源受限环境</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 标准化进展部分 -->
+    <section id="standard" class="container mx-auto py-12 px-4 md:px-8">
+        <div class="glassmorphism p-8 mb-16">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white mr-3">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                全球标准化进展：NIST主导与国际协同
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">NIST后量子密码标准化进程</h3>
+                    <p class="mb-4">美国国家标准与技术研究院（NIST）自2016年启动后量子密码（PQC）标准化计划，采用"竞赛式"机制推动全球算法筛选与标准制定，其核心流程包括公开征集、多轮筛选与社区评审三个阶段。</p>
+                    
+                    <div class="flex items-start mt-6">
+                        <div class="timeline-line relative mr-4" style="height: 120px;">
+                            <div class="timeline-dot absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                            <div class="timeline-dot absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
+                        </div>
+                        <div>
+                            <div class="mb-6">
+                                <h4 class="font-semibold">2017-2022年</h4>
+                                <p class="text-sm text-gray-600">公开征集82份方案，经三轮筛选确定CRYSTALS-Kyber和CRYSTALS-Dilithium为首批重点算法</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">2025年3月</h4>
+                                <p class="text-sm text-gray-600">发布IR 8545报告，确定HQC为补充密钥建立算法，形成多维度算法组合</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div id="nist-process-chart" class="chart-container"></div>
+                    <div class="text-sm text-gray-500 text-center mt-2">NIST标准化进程时间线</div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-6">区域与国家标准化动态</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-flag-eu"></i>
+                        </div>
+                        <h4 class="font-semibold">欧盟</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">欧盟通过"量子旗舰研究规划"及PQCRYPT项目支持技术研发，ETSI推进标准制定，2025年发布首个后量子加密标准TS 104 105（Covercrypt）。</p>
+                </div>
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-3">
+                            <i class="fas fa-flag-usa"></i>
+                        </div>
+                        <h4 class="font-semibold">中国</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">中国以"自主可控"为核心，2025年启动新一代公钥算法全球征集，构建从算法研发到产业应用的完整生态体系。</p>
+                </div>
+                <div class="glassmorphism p-6 card-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                            <i class="fas fa-globe-asia"></i>
+                        </div>
+                        <h4 class="font-semibold">日韩</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">日韩采取协同国际标准的路径，积极参与NIST主导的技术评估，同时开展国内算法评估以平衡国际协同与区域适配。</p>
+                </div>
+            </div>
+
+            <div id="standard-comparison" class="mermaid">
+                classDiagram
+                    class NIST {
+                        <<国际标准>>
+                        +算法筛选: 竞赛式
+                        +核心算法: Kyber, Dilithium
+                        +时间表: 2030年淘汰RSA
+                    }
+
+                    class EU {
+                        <<区域协同>>
+                        +政策框架: 量子旗舰计划
+                        +标准: ETSI TS 104 105
+                        +特点: 互操作性优先
+                    }
+
+                    class China {
+                        <<自主可控>>
+                        +算法征集: 2025年启动
+                        +技术路线: 国密兼容
+                        +产业生态: 芯片到系统
+                    }
+
+                    NIST --|> EU : 技术参考
+                    NIST --|> China : 部分兼容
+                    EU -- China : 潜在技术分歧
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用案例部分 -->
+    <section id="cases" class="container mx-auto py-12 px-4 md:px-8">
+        <div class="glassmorphism p-8 mb-16">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white mr-3">
+                    <i class="fas fa-building"></i>
+                </div>
+                典型应用案例：金融、政务与关键基础设施
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">金融领域：交易安全与抗量子迁移</h3>
+                    <p class="mb-4">金融领域作为量子计算威胁的高敏感场景，其抗量子迁移策略已形成以混合加密过渡为核心、性能优化与合规适配为支撑的体系，并在高并发交易场景中展现出可行性。</p>
+                    
+                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                        <p class="text-blue-800 font-medium mb-2"><i class="fas fa-university text-blue-400 mr-2"></i>金融机构迁移案例</p>
+                        <p class="text-gray-700">中国太保构建自主可控PQC算法SDK，采用标准公钥加密与后量子密码结合的混合加密模式；中国电信翼支付推出"抗量子+国密"双轨制支付解决方案；中国银河证券基于NTRU抗量子专利构建"PQC+SSL VPN"混合方案。</p>
+                    </div>
+                </div>
+                <div>
+                    <div id="finance-migration-chart" class="chart-container"></div>
+                    <div class="text-sm text-gray-500 text-center mt-2">金融领域迁移路径</div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-6">政务与关键信息基础设施</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <p class="mb-4">政务场景对后量子密码技术提出了兼容性与自主可控的核心需求。国内研发的芯片级后量子密码卡已实现对党政等政务领域信息系统的广泛适配，支持国密算法与后量子算法（如Kyber、Dilithium），并能兼容国产CPU（龙芯、飞腾等）及操作系统（麒麟、统信UOS）。</p>
+                    
+                    <div class="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r-lg mb-4">
+                        <p class="text-sm text-gray-700">吉大正元的后量子PKI系统采用模块化设计，支持混合密钥协商与数字签名，兼容X.509v3标准，为政企信息系统提供平滑升级路径。</p>
+                    </div>
+                </div>
+                <div>
+                    <div id="gov-tech-stack" class="mermaid">
+                        graph TD
+                            A[政务应用] --> B[后量子PKI系统]
+                            B --> C[混合加密模块]
+                            B --> D[数字签名模块]
+                            C --> E[国密算法]
+                            C --> F[后量子算法]
+                            D --> G[传统签名]
+                            D --> H[PQC签名]
+                            B --> I[硬件安全模块]
+                            I --> J[国产CPU]
+                            I --> K[国产OS]
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>机构</th>
+                            <th>方案特点</th>
+                            <th>核心技术组件</th>
+                            <th>应用场景</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>中国太保</td>
+                            <td>标准PKE+后量子密码混合加密</td>
+                            <td>自主可控PQC算法SDK</td>
+                            <td>金融业务系统</td>
+                        </tr>
+                        <tr>
+                            <td>中国电信翼支付</td>
+                            <td>PQC+国密双轨制架构</td>
+                            <td>入向网关安全模块</td>
+                            <td>企业支付接入</td>
+                        </tr>
+                        <tr>
+                            <td>中国银河证券</td>
+                            <td>PQC+SSL VPN混合部署</td>
+                            <td>NTRU抗量子算法</td>
+                            <td>证券网上交易系统</td>
+                        </tr>
+                        <tr>
+                            <td>吉大正元</td>
+                            <td>量子密钥+后量子算法双重防护</td>
+                            <td>QKD传输+后量子密码机</td>
+                            <td>国有金融机构业务系统</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 未来趋势部分 -->
+    <section id="future" class="container mx-auto py-12 px-4 md:px-8">
+        <div class="glassmorphism p-8 mb-16">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white mr-3">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                未来趋势与战略建议
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">技术发展方向</h3>
+                    <p class="mb-4">后量子密码技术的演进路径呈现多阶段特征，短期将以格密码为主导，中期趋向多算法协同，长期则可能实现量子密钥分发（QKD）与后量子密码（PQC）的深度融合，同时人工智能（AI）在动态资源调度中的赋能作用将日益凸显。</p>
+                    
+                    <div class="flex items-start mt-6">
+                        <div class="timeline-line relative mr-4" style="height: 180px;">
+                            <div class="timeline-dot absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                            <div class="timeline-dot absolute top-1/3 left-1/2 transform -translate-x-1/2"></div>
+                            <div class="timeline-dot absolute top-2/3 left-1/2 transform -translate-x-1/2"></div>
+                            <div class="timeline-dot absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
+                        </div>
+                        <div>
+                            <div class="mb-6">
+                                <h4 class="font-semibold">短期 (2025-2030)</h4>
+                                <p class="text-sm text-gray-600">格密码主导，逐步替换TLS、VPN及数字签名方案</p>
+                            </div>
+                            <div class="mb-6">
+                                <h4 class="font-semibold">中期 (2030-2040)</h4>
+                                <p class="text-sm text-gray-600">多算法协同，针对特定场景形成多元化技术路线</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">长期 (2040+)</h4>
+                                <p class="text-sm text-gray-600">QKD与PQC融合，AI赋能动态加密资源调度</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div id="market-growth-chart" class="chart-container"></div>
+                    <div class="text-sm text-gray-500 text-center mt-2">后量子密码市场规模预测 (2025-2030)</div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-6">产业生态与政策建议</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                        <p class="text-blue-800 font-medium mb-2"><i class="fas fa-lightbulb text-blue-400 mr-2"></i>中国PQC产业发展建议</p>
+                        <p class="text-gray-700">需以"算法-芯片-标准-应用"协同推进为核心，构建自主可控、开放兼容的产业生态体系。</p>
+                    </div>
+                    
+                    <h4 class="font-semibold mb-3">重点建议方向：</h4>
+                    <ul class="list-disc pl-5 space-y-2 mb-6">
+                        <li>加强PQC基础研究，提升核心技术自主可控能力</li>
+                        <li>完善标准体系，构建"国际衔接+自主创新"双轨框架</li>
+                        <li>推动芯片与硬件适配，保障供应链安全</li>
+                        <li>加速试点示范，重点领域先行落地</li>
+                        <li>强化政策协同支持，优化产业生态环境</li>
+                    </ul>
+                </div>
+                <div>
+                    <div id="policy-framework" class="mermaid">
+                        graph LR
+                            A[基础研究] --> B[算法创新]
+                            A --> C[安全性证明]
+                            B --> D[标准制定]
+                            C --> D
+                            D --> E[芯片实现]
+                            D --> F[硬件适配]
+                            E --> G[系统集成]
+                            F --> G
+                            G --> H[行业应用]
+                            H -->|反馈| A
+                            I[政策支持] --> A
+                            I --> D
+                            I --> E
+                            I --> H
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-100 py-8 mt-16">
+        <div class="container mx-auto px-4 md:px-8 text-center text-gray-600">
+            <div class="mb-4">
+                <a href="https://github.com/ZhongyiXie/cryptology.git" class="text-blue-600 hover:text-blue-800 transition-colors">created by Zhongyi Xie</a>
+            </div>
+            <div>
+                页面内容经人工审核，人工结合AI完成，仅供参考。不代表官方立场，不代表中国政府立场。不承担任何法律责任。如有任何问题，联系我们调整内容。
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors hidden">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // 初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            // 量子威胁对比图
+            const quantumThreatCtx = document.createElement('canvas');
+            document.getElementById('quantum-threat-chart').appendChild(quantumThreatCtx);
+            new Chart(quantumThreatCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Shor算法', 'Grover算法'],
+                    datasets: [{
+                        label: '破解所需量子比特数',
+                        data: [372, null],
+                        backgroundColor: 'rgba(56, 182, 255, 0.6)',
+                        borderColor: 'rgba(56, 182, 255, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: '影响程度',
+                        data: [100, 80],
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const data = context[0].raw;
+                                    const index = context[0].dataIndex;
+                                    if (index === 0) {
+                                        return [
+                                            '影响: 多项式时间破解公钥密码',
+                                            '示例: RSA-2048破解时间从百万年→小时级'
+                                        ];
+                                    } else {
+                                        return [
+                                            '影响: 对称密钥搜索效率提升√N倍',
+                                            '示例: AES-256安全性≈AES-128'
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 算法类型分布图
+            const algorithmTypesCtx = document.createElement('canvas');
+            document.getElementById('algorithm-types-chart').appendChild(algorithmTypesCtx);
+            new Chart(algorithmTypesCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['格基算法', '编码算法', '同源算法', '置换核算法'],
+                    datasets: [{
+                        data: [11, 1, 1, 1],
+                        backgroundColor: [
+                            'rgba(56, 182, 255, 0.7)',
+                            'rgba(0, 196, 159, 0.7)',
+                            'rgba(255, 187, 40, 0.7)',
+                            'rgba(255, 128, 66, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(56, 182, 255, 1)',
+                            'rgba(0, 196, 159, 1)',
+                            'rgba(255, 187, 40, 1)',
+                            'rgba(255, 128, 66, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // NIST进程时间线图
+            const nistProcessCtx = document.createElement('canvas');
+            document.getElementById('nist-process-chart').appendChild(nistProcessCtx);
+            new Chart(nistProcessCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2016', '2017', '2018', '2022', '2024', '2025'],
+                    datasets: [{
+                        label: 'NIST标准化进程',
+                        data: [0, 82, 69, 4, 14, 2],
+                        fill: false,
+                        borderColor: 'rgba(56, 182, 255, 1)',
+                        tension: 0.1,
+                        pointBackgroundColor: 'rgba(56, 182, 255, 1)',
+                        pointRadius: [3, 5, 5, 5, 5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value === 0) return '启动';
+                                    if (value === 82) return '征集方案';
+                                    if (value === 69) return '有效算法';
+                                    if (value === 4) return '首批算法';
+                                    if (value === 14) return '候选算法';
+                                    if (value === 2) return '补充算法';
+                                    return value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const year = context.label;
+                                    const value = context.raw;
+                                    if (year === '2016') return 'NIST启动PQC标准化计划';
+                                    if (year === '2017') return '公开征集82份候选方案';
+                                    if (year === '2018') return '筛选为69个有效算法';
+                                    if (year === '2022') return '确定4个首批算法';
+                                    if (year === '2024') return '14个数字签名候选算法';
+                                    if (year === '2025') return '确定HQC为补充算法';
+                                    return `${year}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 金融迁移路径图
+            const financeMigrationCtx = document.createElement('canvas');
+            document.getElementById('finance-migration-chart').appendChild(financeMigrationCtx);
+            new Chart(financeMigrationCtx, {
+                type: 'line',
+                data: {
+                    labels: ['传统加密阶段', '混合过渡阶段', '纯量子加密阶段'],
+                    datasets: [{
+                        label: '金融领域迁移路径',
+                        data: [100, 60, 20],
+                        fill: false,
+                        borderColor: 'rgba(56, 182, 255, 1)',
+                        tension: 0.1,
+                        pointBackgroundColor: 'rgba(56, 182, 255, 1)',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const stage = context.label;
+                                    if (stage === '传统加密阶段') return '使用RSA/AES等传统加密算法';
+                                    if (stage === '混合过渡阶段') return '采用RSA+NTRU等混合加密方案';
+                                    if (stage === '纯量子加密阶段') return '完全过渡到PQC算法';
+                                    return stage;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 市场规模预测图
+            const marketGrowthCtx = document.createElement('canvas');
+            document.getElementById('market-growth-chart').appendChild(marketGrowthCtx);
+            new Chart(marketGrowthCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2025', '2026', '2027', '2028', '2029', '2030'],
+                    datasets: [{
+                        label: '后量子密码市场规模(亿美元)',
+                        data: [50, 100, 180, 300, 420, 500],
+                        backgroundColor: 'rgba(56, 182, 255, 0.7)',
+                        borderColor: 'rgba(56, 182, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `市场规模: ${context.raw}亿美元`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 初始化mermaid图表
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                flowchart: {
+                    useMaxWidth: true,
+                    htmlLabels: true,
+                    curve: 'basis'
+                }
+            });
+
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
+                    // 点击导航链接后关闭移动端菜单
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    if (mobileMenu.classList.contains('active')) {
+                        mobileMenu.classList.remove('active');
+                        // 同时切换图标回汉堡按钮
+                        const menuIcon = document.querySelector('#mobileMenuButton i');
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    }
+                });
+            });
+
+            // 移动端导航菜单切换
+            const menuButton = document.getElementById('mobileMenuButton');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            menuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('active');
+
+                // 切换图标
+                const icon = this.querySelector('i');
+                if (mobileMenu.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+
+            // 点击页面其他区域关闭移动端菜单
+            document.addEventListener('click', function(event) {
+                const isClickInsideNav = document.getElementById('mainNav').contains(event.target);
+
+                if (!isClickInsideNav && mobileMenu.classList.contains('active')) {
+                    mobileMenu.classList.remove('active');
+                    const icon = menuButton.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+
+            // 深色模式切换
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                const icon = this.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+
+            // 返回顶部按钮
+            const backToTopButton = document.getElementById('backToTop');
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('hidden');
+                } else {
+                    backToTopButton.classList.add('hidden');
+                }
+            });
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 字体大小调整
+            const fontSizeButtons = document.querySelectorAll('.font-size-btn');
+            fontSizeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const size = this.dataset.size;
+                    document.body.style.fontSize = size;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+```
